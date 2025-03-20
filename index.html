@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Book Submissions</title>
+  <style>
+    /* Basic styling */
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .helper {
+      font-size: 0.9em;
+      color: #666;
+      font-style: italic;
+      margin-top: 5px;
+    }
+    button {
+      padding: 10px 15px;
+      background-color: #4285f4;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #3071e7;
+    }
+    ol {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .edit-btn {
+      margin-left: 10px;
+      background-color: #f4b400;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Book Submissions</h1>
+    
+    <!-- Name Form -->
+    <div id="nameSection">
+      <div class="form-group">
+        <label for="nameInput">Your Name:</label>
+        <input type="text" id="nameInput" placeholder="Enter your name" required>
+      </div>
+      <button id="nameSubmit">Submit Name</button>
+    </div>
+    
+    <!-- Book Recommendation Form -->
+    <div id="bookSection" style="display: none;">
+      <div class="form-group">
+        <label for="bookInput">Book Title:</label>
+        <input type="text" id="bookInput" placeholder="Enter book title and author" required>
+        <div class="helper"><em>Format: Title, Author Name</em></div>
+      </div>
+      <button id="bookSubmit">Submit Book</button>
+    </div>
+    
+    <!-- List of Submitted Books -->
+    <div id="listSection" style="display: none;">
+      <h2>Your Book Recommendations:</h2>
+      <ol id="bookList"></ol>
+    </div>
+    
+    <!-- Final Submission Button -->
+    <div id="finalSection" style="display: none;">
+      <button id="finalSubmit">Submit</button>
+    </div>
+  </div>
+  
+  <script>
+    // Global variables
+    let userName = "";
+    let books = [];
+    
+    // DOM element references
+    const nameSection = document.getElementById("nameSection");
+    const bookSection = document.getElementById("bookSection");
+    const listSection = document.getElementById("listSection");
+    const finalSection = document.getElementById("finalSection");
+    
+    // Handle Name Submission
+    document.getElementById("nameSubmit").addEventListener("click", function() {
+      const nameInput = document.getElementById("nameInput").value.trim();
+      if(nameInput !== ""){
+        userName = nameInput;
+        nameSection.style.display = "none";
+        bookSection.style.display = "block";
+        listSection.style.display = "block";
+        finalSection.style.display = "block";
+      }
+    });
+    
+    // Handle Book Submission
+    document.getElementById("bookSubmit").addEventListener("click", function() {
+      const bookInput = document.getElementById("bookInput").value.trim();
+      if(bookInput !== ""){
+        books.push(bookInput);
+        document.getElementById("bookInput").value = "";
+        renderBookList();
+      }
+    });
+    
+    // Render the list of book recommendations with Edit buttons
+    function renderBookList(){
+      const bookList = document.getElementById("bookList");
+      bookList.innerHTML = "";
+      books.forEach((book, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${book}</span>`;
+        const editBtn = document.createElement("button");
+        editBtn.textContent = "Edit";
+        editBtn.className = "edit-btn";
+        editBtn.addEventListener("click", function(){
+          const newBook = prompt("Edit your book recommendation:", book);
+          if(newBook !== null && newBook.trim() !== ""){
+            books[index] = newBook.trim();
+            renderBookList();
+          }
+        });
+        li.appendChild(editBtn);
+        bookList.appendChild(li);
+      });
+    }
+    
+    // Handle Final Submission: create JSON payload and send it to Google Apps Script
+    document.getElementById("finalSubmit").addEventListener("click", function(){
+      const payload = {
+        name: userName,
+        recommendations: books
+      };
+      
+      console.log("Payload:", JSON.stringify(payload));
+      
+      // Replace with your deployed Google Apps Script web app URL
+      const scriptURL = "https://script.google.com/macros/s/AKfycbxVlrkQ-TBiZxCiZxdRLlP6i6Iy5qe7dyeL4yydoAJCyFPOOzCAIZg5QPDJl30w0FiS/exec";
+      
+      fetch(scriptURL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("Success:", data);
+        alert("Submission successful!");
+      })
+      .catch(error => {
+        console.error("Error submitting data:", error);
+        alert("There was an error submitting your data.");
+      });
+    });
+  </script>
+</body>
+</html>
